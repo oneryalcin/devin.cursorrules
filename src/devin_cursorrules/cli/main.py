@@ -3,6 +3,7 @@ from rich import print
 from pathlib import Path
 from typing import Optional
 from importlib.metadata import version as get_version, PackageNotFoundError
+from .config import config_app
 
 app = typer.Typer(
     name="devin",
@@ -10,10 +11,13 @@ app = typer.Typer(
     no_args_is_help=True,  # This ensures help is shown when no arguments are provided
 )
 
+# Add config sub-command
+app.add_typer(config_app)
+
 def version_callback(value: bool):
     if value:
         try:
-            version = get_version('devin-cli')
+            version = get_version('devin-cursorrules')
         except PackageNotFoundError:
             version = "0.1.0"  # Default version from pyproject.toml
         print(f"[bold green]devin-cli[/bold green] version: {version}")
