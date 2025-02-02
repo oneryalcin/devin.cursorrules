@@ -1,6 +1,8 @@
 import pytest
 import os
+import keyring
 from pathlib import Path
+from pydantic import SecretStr
 from devin_cursorrules.config import DevinSettings
 
 def test_settings_default_values():
@@ -43,7 +45,7 @@ def test_config_cli_commands(isolated_cli_runner, cli_app):
     # Test setting a value
     result = runner.invoke(cli_app, ["config", "set", "api_key", "test-key"])
     assert result.exit_code == 0
-    assert "Set api_key to test-key" in result.stdout
+    assert "Set api_key to ********" in result.stdout
     
     # Test getting a specific value
     result = runner.invoke(cli_app, ["config", "get", "api_key"])
@@ -60,3 +62,42 @@ def test_config_cli_commands(isolated_cli_runner, cli_app):
     result = runner.invoke(cli_app, ["config", "set", "invalid_key", "value"])
     assert result.exit_code == 1
     assert "Unknown configuration key" in result.stdout
+
+def test_api_key_validation():
+    """Test API key validation"""
+    # Test short API key
+    with pytest.raises(ValueError, match="API key seems too short"):
+        DevinSettings(api_key=SecretStr("short"))
+    
+    # Test valid API key
+    settings = DevinSettings(api_key=SecretStr("a" * 20))
+    assert settings.api_key.get_secret_value() == "a" * 20
+
+def test_secure_storage():
+    """Test secure storage using keyring"""
+    test_key = "test-secure-key"
+    
+    # Set API key and save
+    settings = DevinSettings(api_key=SecretStr(test_key))
+    settings.save()
+    
+    # Verify key is in keyring
+    stored_key = keyring.get_password("devin-cli", "api_key")
+    assert stored_key == test_key
+    
+    # Load settings and verify key is retrieved
+    new_settings = DevinSettings.load()
+    assert new_settings.api_key.get_secret_value() == test_key
+
+def test_environment_variables():
+    """Test loading settings from environment variables"""
+    os.environ["DEVIN_API_KEY"] = "env-test-key"
+    os.environ["DEVIN_DEFAULT_MODEL"] = "gpt-3.5-turbo"
+    
+    try:
+        settings = DevinSettings()
+        assert settings.api_key.get_secret_value() == "env-test-key"
+        assert settings.default_model == "gpt-3.5-turbo"
+    finally:
+        del os.environ["DEVIN_API_KEY"]
+        del os.environ["DEVIN_DEFAULT_MODEL"]

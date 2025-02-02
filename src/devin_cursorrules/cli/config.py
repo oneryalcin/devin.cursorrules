@@ -2,6 +2,7 @@ import typer
 from rich import print
 from typing import Optional
 from pathlib import Path
+from pydantic import SecretStr
 from ..config import DevinSettings
 
 config_app = typer.Typer(
@@ -22,12 +23,22 @@ def set_config(
         if hasattr(settings, key):
             if key == 'project_path':
                 value = str(Path(value).absolute())
+            elif key == 'api_key':
+                # Handle API key specially with SecretStr
+                value = SecretStr(value)
             setattr(settings, key, value)
             settings.save()
-            print(f"[green]✓[/green] Set {key} to {value}")
+            if key == 'api_key':
+                print("[green]✓[/green] API key has been securely stored")
+            else:
+                print(f"[green]✓[/green] Set {key} to {value}")
         else:
             print(f"[red]Error:[/red] Unknown configuration key: {key}")
+            print("Available keys: api_key, project_path, default_model, max_tokens, temperature")
             raise typer.Exit(1)
+    except ValueError as ve:
+        print(f"[red]Error:[/red] Invalid value: {str(ve)}")
+        raise typer.Exit(1)
     except Exception as e:
         print(f"[red]Error:[/red] Failed to set configuration: {str(e)}")
         raise typer.Exit(1)
