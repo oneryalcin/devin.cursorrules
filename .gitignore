@@ -13,6 +13,11 @@ pr_msg*.txt
 
 # testing
 /coverage
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+htmlcov/
 
 # next.js
 /.next/
@@ -48,14 +53,45 @@ credentials.json
 # asdf
 .tool-versions
 
-# pycache
+# Python
 **/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # python virtual environment
 /venv/
+.venv/
+ENV/
 
-# pytest
+# testing and linting
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
 
-# vscode
+# IDE
 .vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific
+scratchpad.md
+tests/_test_*.py  # Temporarily disabled test files
+.cursorrules.bak
