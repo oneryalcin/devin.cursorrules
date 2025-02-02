@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional
 from importlib.metadata import version as get_version, PackageNotFoundError
 from .config import config_app
+from .screenshot import app as screenshot_app
 
 app = typer.Typer(
     name="devin",
@@ -11,8 +12,9 @@ app = typer.Typer(
     no_args_is_help=True,  # This ensures help is shown when no arguments are provided
 )
 
-# Add config sub-command
+# Add sub-commands
 app.add_typer(config_app)
+app.add_typer(screenshot_app)
 
 def version_callback(value: bool):
     if value:
